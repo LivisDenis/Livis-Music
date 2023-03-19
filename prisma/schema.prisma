@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,4 +5,114 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model albums {
+  id               Int      @id @default(autoincrement())
+  albumName        String?  @db.VarChar(255)
+  descriptionAlbum String?  @db.VarChar(255)
+  genre            String?  @db.VarChar(255)
+  formatRelease    String?  @db.VarChar(255)
+  coverPath        String?  @unique @db.VarChar(255)
+  createdAt        DateTime @db.Timestamptz(6)
+  updatedAt        DateTime @db.Timestamptz(6)
+  tracks           tracks[]
+}
+
+model tracks {
+  id               Int      @id @default(autoincrement())
+  trackName        String?  @db.VarChar(255)
+  descriptionTrack String?  @db.VarChar(255)
+  production       String?  @db.VarChar(255)
+  trackText        String?  @db.VarChar(255)
+  trackPath        String?  @unique @db.VarChar(255)
+  albumId          Int?
+  createdAt        DateTime @db.Timestamptz(6)
+  updatedAt        DateTime @db.Timestamptz(6)
+  albums           albums?  @relation(fields: [albumId], references: [id], onDelete: NoAction)
+}
+
+model user_albums {
+  userId    Int
+  albumId   Int
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, albumId])
+}
+
+model user_audition_tracks {
+  userId    Int
+  trackId   Int
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, trackId])
+}
+
+model user_backgrounds {
+  id             Int      @id @default(autoincrement())
+  backgroundPath String?  @db.VarChar(255)
+  createdAt      DateTime @db.Timestamptz(6)
+  updatedAt      DateTime @db.Timestamptz(6)
+}
+
+model user_liked_albums {
+  userId    Int
+  albumId   Int
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, albumId])
+}
+
+model user_liked_tracks {
+  userId    Int
+  trackId   Int
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, trackId])
+}
+
+model user_playlists {
+  playlistName String?  @db.VarChar(255)
+  userId       Int
+  trackId      Int
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, trackId])
+}
+
+model user_subscriptions {
+  subscribedUserId                                 Int      @id
+  toUserId                                         Int?
+  createdAt                                        DateTime @db.Timestamptz(6)
+  updatedAt                                        DateTime @db.Timestamptz(6)
+  users_user_subscriptions_subscribedUserIdTousers users    @relation("user_subscriptions_subscribedUserIdTousers", fields: [subscribedUserId], references: [id], onDelete: Cascade)
+  users_user_subscriptions_toUserIdTousers         users?   @relation("user_subscriptions_toUserIdTousers", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([subscribedUserId, toUserId])
+}
+
+model users {
+  id                                                            Int                    @id @default(autoincrement())
+  email                                                         String?                @unique @db.VarChar(255)
+  password                                                      String?                @db.VarChar(255)
+  role                                                          String?                @default("USER") @db.VarChar(255)
+  createdAt                                                     DateTime               @db.Timestamptz(6)
+  updatedAt                                                     DateTime               @db.Timestamptz(6)
+  user_albums                                                   user_albums[]
+  user_audition_tracks                                          user_audition_tracks[]
+  user_liked_albums                                             user_liked_albums[]
+  user_liked_tracks                                             user_liked_tracks[]
+  user_playlists                                                user_playlists[]
+  user_subscriptions_user_subscriptions_subscribedUserIdTousers user_subscriptions?    @relation("user_subscriptions_subscribedUserIdTousers")
+  user_subscriptions_user_subscriptions_toUserIdTousers         user_subscriptions[]   @relation("user_subscriptions_toUserIdTousers")
 }
